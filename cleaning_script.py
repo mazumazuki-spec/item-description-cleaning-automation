@@ -63,7 +63,7 @@ def check_reason(text):
 
 def process_skc(file_name):
     sheet_name = "Data"
-    source_col = "Description  (Name Thai)"
+    source_col = "Description (Name Thai)"
 
     df = pd.read_excel(file_name, sheet_name=sheet_name)
     validate_column(df, source_col)
@@ -227,21 +227,43 @@ def process_spn(file_name):
 # =========================================================
 def main():
     if len(sys.argv) < 2:
-        raise Exception("python script.py input.xlsx")
+        raise Exception("python cleaning_script.py input.xlsx")
 
     file_name = sys.argv[1]
     print("ใช้ไฟล์:", file_name)
 
-    skc = process_skc(file_name)
-    snt = process_snt(file_name)
-    spn = process_spn(file_name)
+    xls = pd.ExcelFile(file_name)
+    available_sheets = xls.sheet_names
+    print("พบชีท:", available_sheets)
 
     output = file_name.replace(".xlsx", "_clean.xlsx")
 
+    results = {}
+
+    if "Data" in available_sheets:
+        print("กำลังประมวลผล SKC / Data...")
+        results["SKC_clean"] = process_skc(file_name)
+    else:
+        print("ข้าม SKC: ไม่พบชีท Data")
+
+    if "SNT" in available_sheets:
+        print("กำลังประมวลผล SNT...")
+        results["SNT_clean"] = process_snt(file_name)
+    else:
+        print("ข้าม SNT: ไม่พบชีท SNT")
+
+    if "SPN" in available_sheets:
+        print("กำลังประมวลผล SPN...")
+        results["SPN_clean"] = process_spn(file_name)
+    else:
+        print("ข้าม SPN: ไม่พบชีท SPN")
+
+    if not results:
+        raise Exception("ไม่พบชีทที่รองรับ: Data, SNT, SPN")
+
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        skc.to_excel(writer, sheet_name="SKC_clean", index=False)
-        snt.to_excel(writer, sheet_name="SNT_clean", index=False)
-        spn.to_excel(writer, sheet_name="SPN_clean", index=False)
+        for sheet_name, df in results.items():
+            df.to_excel(writer, sheet_name=sheet_name, index=False)
 
     print("บันทึกไฟล์แล้ว:", output)
 
