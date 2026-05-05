@@ -80,5 +80,9 @@ python cleaning_script.py input.xlsx
 
 This tool is designed for internal data cleaning workflows and can be extended into a web-based tool if needed.
 
+
+## 📸 Example Output
+
+![Sample Output](screenshot.png)
 ---
  
